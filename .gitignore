@@ -2,3 +2,4 @@ DCRM/
 MyCode/__pycache__/
 MyCode/source_term.mat
 MyCode/u.mat
+MyCode/lhs_samples.mat
