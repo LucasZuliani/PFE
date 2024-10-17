@@ -34,10 +34,10 @@ class RecurrentBlock(torch.nn.Module):
         return x
 
 class RitzModel(torch.nn.Module):
-    def __init__(self, num_blocks=4, hidden_size=10):
+    def __init__(self, input_dim=1, num_blocks=4, hidden_size=10):
         super(RitzModel, self).__init__()
 
-        self.fc_in = torch.nn.Linear(1, hidden_size)
+        self.fc_in = torch.nn.Linear(input_dim, hidden_size)
         self.blocks = torch.nn.ModuleList([RecurrentBlock(hidden_size=hidden_size) for _ in range(num_blocks)])
         self.fc_out = torch.nn.Linear(hidden_size, 1)
 
