@@ -33,7 +33,6 @@ class FullyConnectedNetwork(torch.nn.Module):
                 torch.nn.init.normal_(m.weight, mean=0., std=std_xavier)
                 torch.nn.init.constant_(m.bias, 0.)
                 
-
     def forward(self, x):
         
         x_normalised = 2.0 * (x - self.lb) / (self.ub - self.lb) - 1.0
