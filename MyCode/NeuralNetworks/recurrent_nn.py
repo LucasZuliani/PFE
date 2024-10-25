@@ -17,15 +17,21 @@ class ActivationCube(torch.nn.Module):
         return torch.maximum(x**3, torch.tensor(0.))
 
 class RecurrentBlock(torch.nn.Module):
-    def __init__(self, hidden_size):
+    def __init__(self, in_size, hidden_size):
         super(RecurrentBlock, self).__init__()
-        self.fc1 = torch.nn.Linear(in_features=hidden_size, out_features=hidden_size)
+        self.in_size = in_size
+        self.hidden_size = hidden_size
+        self.fc1 = torch.nn.Linear(in_features=in_size, out_features=hidden_size)
         self.activation1 = ActivationCube()
         self.fc2 = torch.nn.Linear(in_features=hidden_size, out_features=hidden_size)
         self.activation2 = ActivationCube()
     
     def forward(self, x):
-        retain_x = x
+        if self.in_size < self.hidden_size:
+            padding = (0, self.hidden_size - self.in_size)
+            retain_x = torch.nn.functional.pad(x, padding, mode='constant', value=0)
+        else:
+            retain_x = x
         x = self.fc1(x)
         x = self.activation1(x)
         x = self.fc2(x)
@@ -34,11 +40,12 @@ class RecurrentBlock(torch.nn.Module):
         return x
 
 class RitzModel(torch.nn.Module):
-    def __init__(self, input_dim=1, num_blocks=4, hidden_size=10):
+    def __init__(self, input_dim=2, num_blocks=4, hidden_size=10):
         super(RitzModel, self).__init__()
 
-        self.fc_in = torch.nn.Linear(input_dim, hidden_size)
-        self.blocks = torch.nn.ModuleList([RecurrentBlock(hidden_size=hidden_size) for _ in range(num_blocks)])
+        self.blocks = torch.nn.ModuleList([
+            RecurrentBlock(in_size=input_dim if block_i == 0 else hidden_size, hidden_size=hidden_size)
+            for block_i in range(num_blocks)])
         self.fc_out = torch.nn.Linear(hidden_size, 1)
 
         for m in self.modules():
@@ -48,8 +55,7 @@ class RitzModel(torch.nn.Module):
         self.nb_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
     def forward(self, x):
-        
-        x = self.fc_in(x)
+                
         for block in self.blocks:
             x = block(x)
         u_theta = self.fc_out(x)
