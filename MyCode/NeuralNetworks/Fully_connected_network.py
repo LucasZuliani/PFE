@@ -8,18 +8,22 @@ class SinActivation(torch.nn.Module):
         return torch.sin(x)
 
 class FullyConnectedNetwork(torch.nn.Module):
-    def __init__(self, domain_bounds, input_dim=1, hidden_size=20):
+    def __init__(self, domain_bounds, kappa, input_dim=1, hidden_size=20, actv=0):
         super(FullyConnectedNetwork, self).__init__()
         
         self.lb, self.ub = domain_bounds
+        self.kappa = kappa
+        self.actv = actv
 
         self.fc_in = torch.nn.Linear(in_features=input_dim, out_features=hidden_size)
         self.fc2 = torch.nn.Linear(in_features=hidden_size, out_features=hidden_size)
         self.fc3 = torch.nn.Linear(in_features=hidden_size, out_features=hidden_size)
         self.fc_out = torch.nn.Linear(in_features=hidden_size, out_features=1)
 
-        self.activation1 = SinActivation()
-        self.activation2 = torch.nn.Tanh()
+        if self.actv == 0:
+            self.activation = torch.nn.Tanh()
+        else:
+            self.activation = SinActivation()
 
         self._initialize_weights()
 
@@ -36,9 +40,9 @@ class FullyConnectedNetwork(torch.nn.Module):
     def forward(self, x):
         
         x_normalised = 2.0 * (x - self.lb) / (self.ub - self.lb) - 1.0
-        x_normalised = self.activation2(self.fc_in(x_normalised))
-        x_normalised = self.activation2(self.fc2(x_normalised))
-        x_normalised = self.activation2(self.fc3(x_normalised))
+        x_normalised = self.activation(self.kappa*self.fc_in(x_normalised))
+        x_normalised = self.activation(self.fc2(x_normalised))
+        x_normalised = self.activation(self.fc3(x_normalised))
         u_theta = self.fc_out(x_normalised)
 
         return u_theta
