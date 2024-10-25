@@ -12,7 +12,21 @@ u_train = u_exact(x_train)
 lb, ub = x_train.min(), x_train.max()
 
 model = Fully_connected_network.FullyConnectedNetwork(domain_bounds=[lb, ub], input_dim=1, hidden_size=20)
-print(model.nb_params)
+criterion = torch.nn.MSELoss()
+model_optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+n_iter_adam = 3000
+
+for iter_i in range(n_iter_adam):
+    model_optimizer.zero_grad()
+
+    u_pred = model(x_train)
+    loss = criterion(u_pred, u_train)
+    loss.backward()
+    model_optimizer.step()
+
+    if iter_i % 100 == 0:
+        print(f"Iteration {iter_i}, loss: {loss.item()}")
+        
 # print(lb, ub)
 # Plot the exact solution
 # plt.figure(figsize=(15, 6))

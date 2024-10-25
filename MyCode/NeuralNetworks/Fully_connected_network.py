@@ -21,13 +21,18 @@ class FullyConnectedNetwork(torch.nn.Module):
         self.activation1 = SinActivation()
         self.activation2 = torch.nn.Tanh()
 
-        for m in self.modules():
-            if isinstance(m, torch.nn.Linear):
-                # torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain('tanh'))
-                torch.nn.init.normal_(m.weight, mean=0.0, std=0.1)
-                torch.nn.init.constant_(m.bias, 0.1)
+        self._initialize_weights()
 
         self.nb_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, torch.nn.Linear):
+                in_dim, out_dim = m.in_features, m.out_features
+                std_xavier = torch.sqrt(torch.tensor(2.0 / (in_dim + out_dim)))
+                torch.nn.init.normal_(m.weight, mean=0., std=std_xavier)
+                torch.nn.init.constant_(m.bias, 0.)
+                
 
     def forward(self, x):
         
