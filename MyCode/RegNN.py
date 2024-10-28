@@ -10,10 +10,12 @@ else:
    print("Running on the CPU")
 
 def u_exact(x:torch.Tensor):
+    # u_g = torch.log(x+2) + torch.cos(2*x + x**3)
     u_g = torch.sin(2*x + 1) + 0.2*torch.exp(1.3*x)
     return u_g
 
 torch.manual_seed(12)
+torch.set_default_dtype(torch.float64)
 
 x_train = torch.linspace(-1.05, 1.05, 300)[:, None]
 u_train = u_exact(x_train)
@@ -22,6 +24,7 @@ u_intp = u_exact(x_intp)
 
 lb, ub = x_train.min(), x_train.max()
 u_scale = u_train.abs().max()/2
+# u_train = u_train/u_scale
 
 model1 = Fully_connected_network.FullyConnectedNetwork(domain_bounds=[lb, ub], kappa=1, input_dim=1, hidden_size=20, actv=0)
 criterion = torch.nn.MSELoss()
@@ -54,8 +57,8 @@ for iter_i in range(n_iter_lbfgs):
         print(f"Iteration {iter_i}, loss: {loss.item()}")
 
 u_pred = model1(x_intp)
-residue_order1 = u_intp - u_pred
-
+residue_order1 = u_exact(x_intp) - model1(x_intp)
+residue_order1 /= torch.sqrt(torch.mean(residue_order1**2))
 # Second stage of training
 u_train2 = residue_order1.detach()
 nb_zeros = torch.where(u_train2[:-1, 0] * u_train2[1:, 0] < 0)[0]
@@ -87,10 +90,13 @@ if plot:
     axes[0].plot(x_intp, u_pred.detach(), 'r--', label='Predicted')
     axes[0].legend()
     axes[0].set_xlim(lb, ub)
+    axes[0].set_title('First-stage NN')
 
     axes[1].plot(x_intp, residue_order1.detach(), 'b-', label=r'$e_1(x) = u_g(x) - u_0(x)$')
     axes[1].plot(x_intp, redisue_order1_pred.detach(), 'r--', label=r'2nd-stage NN: $u_1(x)$')
     axes[1].set_xlim(lb, ub)
+    axes[1].legend()
+    axes[1].set_title('Residue of the first-stage NN')
 
     plt.show()
 
