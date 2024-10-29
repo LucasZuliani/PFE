@@ -22,9 +22,9 @@ class RecurrentBlock(torch.nn.Module):
         self.in_size = in_size
         self.hidden_size = hidden_size
         self.fc1 = torch.nn.Linear(in_features=in_size, out_features=hidden_size)
-        self.activation1 = ActivationCube()
+        self.activation1 = torch.nn.Tanh()
         self.fc2 = torch.nn.Linear(in_features=hidden_size, out_features=hidden_size)
-        self.activation2 = ActivationCube()
+        self.activation2 = torch.nn.Tanh()
     
     def forward(self, x):
         if self.in_size < self.hidden_size:
