@@ -20,10 +20,12 @@ class FullyConnectedNetwork(torch.nn.Module):
         self.fc3 = torch.nn.Linear(in_features=hidden_size, out_features=hidden_size)
         self.fc_out = torch.nn.Linear(in_features=hidden_size, out_features=1)
 
+        self.activation = torch.nn.Tanh()
+
         if self.actv == 0:
-            self.activation = torch.nn.Tanh()
+            self.first_activation = torch.nn.Tanh()
         else:
-            self.activation = SinActivation()
+            self.first_activation = SinActivation()
 
         self._initialize_weights()
 
@@ -40,7 +42,7 @@ class FullyConnectedNetwork(torch.nn.Module):
     def forward(self, x):
         
         x_normalised = 2.0 * (x - self.lb) / (self.ub - self.lb) - 1.0
-        x_normalised = self.activation(self.kappa*self.fc_in(x_normalised))
+        x_normalised = self.first_activation(self.kappa*self.fc_in(x_normalised))
         x_normalised = self.activation(self.fc2(x_normalised))
         x_normalised = self.activation(self.fc3(x_normalised))
         u_theta = self.fc_out(x_normalised)
