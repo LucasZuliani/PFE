@@ -1,15 +1,6 @@
 import torch
 
 class ActivationCube(torch.nn.Module):
-    """
-    Activation function that returns the cube of the input if it is positive, and 0 otherwise, used in the paper for Deep Ritz method.
-
-    >>> activation = ActivationCube()
-    >>> activation(torch.tensor(2.))
-    tensor(8.)
-    >>> activation(torch.tensor(-2.))
-    tensor(0.)
-    """
     def __init__(self) -> None:
         super(ActivationCube, self).__init__()
 
