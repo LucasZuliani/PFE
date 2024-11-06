@@ -1,5 +1,5 @@
 DCRM/
 MyCode/__pycache__/
-MyCode/source_term.mat
-MyCode/u.mat
-MyCode/lhs_samples.mat
+MyCode/Ex_circle2D/Models/
+MyCode/Ex_non_linear1D/Models/
+MyCode/Ex_singularity2D/Models/
