@@ -10,7 +10,7 @@ import warnings
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from NeuralNetworks import recurrent_nn as rnn
-from ex2_utils import u_true, Corner_Singularity_2D
+from ex2_utils import u_true, du_x1_true, du_x2_true, Corner_Singularity_2D
 
 ## Functions ##
 
@@ -55,7 +55,7 @@ def assess_solution(model, model_name):
     u_exact = (tensor_u_exact.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1)
 
     tensor_du_pred_x1, tensor_du_pred_x2 = partial_derivative(u=tensor_u_pred,x=evaluation_domain_points)
-    tensor_du_exact_x1, tensor_du_exact_x2 = partial_derivative(u=tensor_u_exact,x=evaluation_domain_points)  
+    tensor_du_exact_x1, tensor_du_exact_x2 = du_x1_true(evaluation_domain_points), du_x2_true(evaluation_domain_points) 
     du_pred_x1, du_pred_x2 = (tensor_du_pred_x1.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1), (tensor_du_pred_x2.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1)
     du_exact_x1, du_exact_x2 = (tensor_du_exact_x1.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1), (tensor_du_exact_x2.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1)
 

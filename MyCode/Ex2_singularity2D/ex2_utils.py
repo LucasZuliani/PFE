@@ -110,6 +110,34 @@ def u_true(x):
     else:
         return r**(1/2) * torch.sin(theta/2)
 
+def du_x1_true(x):
+    x, y = x[:, 0], x[:, 1]
+    r, theta = cart2pol(x, y)
+
+    df_dr = torch.sin(theta/2) / (2*torch.sqrt(r))
+    dr_dx = x / r
+    c1 = df_dr * dr_dx
+
+    df_dtheta = torch.sqrt(r) * torch.cos(theta/2) / 2
+    dtheta_dx = -y / (x**2 + y**2)
+    c2 = df_dtheta * dtheta_dx
+
+    return c1+c2
+
+def du_x2_true(x):
+    x, y = x[:, 0], x[:, 1]
+    r, theta = cart2pol(x, y)
+
+    df_dr = torch.sin(theta/2) / (2*torch.sqrt(r))
+    dr_dy = y / r
+    c1 = df_dr * dr_dy
+
+    df_dtheta = torch.sqrt(r) * torch.cos(theta/2) / 2
+    dtheta_dy = x / (x**2 + y**2)
+    c2 = df_dtheta * dtheta_dy
+
+    return c1+c2
+
 def f_true(x):
     return np.zeros(x.shape[0])
 
