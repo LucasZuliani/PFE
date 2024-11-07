@@ -10,14 +10,14 @@ class Corner_Singularity_2D(Dataset):
 
         self.lower_bound_xy = lower_bound_xy
         self.upper_bound_xy = uper_bound_xy
-        self.squared_grid_size = 19
+        self.squared_grid_size = 999
         self.normal = normal
 
         self.nb_points_in_omega = nb_points_in_omega
         self.nb_points_on_boundary = nb_points_on_boundary
         self.omega_coordinates, self.boundary_coordinates = self._create_points_in_domain(self.nb_points_in_omega, self.nb_points_on_boundary, self.lower_bound_xy, self.upper_bound_xy, self.normal)
 
-        self.omega_uniform_coordinates, self.boundary_uniform_coordinates, self.uniform_all_points = self._create_uniform_grid([self.squared_grid_size, self.squared_grid_size], self.lower_bound_xy, self.upper_bound_xy)
+        self.uniform_all_points = self._create_uniform_grid([self.squared_grid_size, self.squared_grid_size], self.lower_bound_xy, self.upper_bound_xy)
 
     def __getitem__(self, index):
         return self.omega_coordinates[index]
@@ -66,16 +66,7 @@ class Corner_Singularity_2D(Dataset):
         mesh = RectangleMesh(Point(lower_bound_xy[0], lower_bound_xy[1]), Point(upper_bound_xy[0], upper_bound_xy[1]), grid_size[0], grid_size[1])
         mesh_coordinates = mesh.coordinates()
 
-        boundary_mask = [(x, y) for x, y in mesh_coordinates if ((x == -1) or (x == 1) or (y == -1) or (y == 1))]
-        extra_points_for_boundary = [(x, 0) for x in np.linspace(0, 1, 40)] 
-        boundary_mask.extend(extra_points_for_boundary)
-        omega_mask = [(x, y) for x, y in mesh_coordinates if not ((y == 0 and 0 <= x <= 1) or (x == -1) or (x == 1) or (y == -1) or (y == 1))]
-
-        boundary_coordinates = np.array(boundary_mask)
-        boundary_coordinates = boundary_coordinates[np.lexsort((boundary_coordinates[:, 0], boundary_coordinates[:, 1]))]
-        omega_coordinates = np.array(omega_mask)
-
-        return omega_coordinates, boundary_coordinates, mesh_coordinates
+        return mesh_coordinates
 
     def plot_domain(self, label=True):
         plt.scatter(self.omega_coordinates[:, 0], self.omega_coordinates[:, 1], c='blue', alpha=0.6, label='Omega points')
@@ -99,7 +90,7 @@ def cart2pol(x, y):
         rho = torch.sqrt(x**2 + y**2)
         phi = torch.atan2(y, x)
         negative_mask = phi < 0
-        phi[negative_mask] += torch.FloatTensor([2 * np.pi])
+        phi[negative_mask] += torch.FloatTensor([2 * np.pi]).to(x.device)
     return(rho, phi)
 
 def u_true(x):

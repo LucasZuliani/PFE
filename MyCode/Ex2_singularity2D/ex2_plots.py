@@ -50,7 +50,7 @@ def assess_solution(model, model_name):
     model.eval()
 
     tensor_u_pred = model(evaluation_domain_points)
-    tensor_u_exact = u_true(evaluation_domain_points)
+    tensor_u_exact = u_true(evaluation_domain_points.cpu())
     u_pred = (tensor_u_pred.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1)
     u_exact = (tensor_u_exact.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1)
 
@@ -108,7 +108,7 @@ def assess_solution(model, model_name):
     
 if __name__=="__main__":
     model_name = 'ex2_res_iter20k_10k_2500_beta500'
-    model = rnn.RitzModel(2).to(('cpu'))
+    model = rnn.RitzModel(2)
     model.load_state_dict(torch.load('./Ex2_singularity2D/Models/'+model_name+'.pth', weights_only=True))
     print('\n')
     assess_solution(model, model_name)
