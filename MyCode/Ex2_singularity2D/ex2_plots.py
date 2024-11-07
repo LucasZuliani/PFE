@@ -5,8 +5,7 @@ from torch.autograd import grad
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import warnings
-# warnings.filterwarnings("ignore")
+import argparse
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from NeuralNetworks import recurrent_nn as rnn
@@ -41,8 +40,8 @@ def config_one_plot_im(axes, fig, inds, to_plot, title):
         fig.colorbar(im, ax=axes[ind_i, ind_j], shrink=0.6)
     return 
 
-def assess_solution(model, model_name):
-    evaluation_domain = Corner_Singularity_2D()
+def assess_solution(model, model_name, grid_size):
+    evaluation_domain = Corner_Singularity_2D(grid_size=grid_size)
     squared_grid_size = evaluation_domain.squared_grid_size
     evaluation_domain_points = torch.FloatTensor(evaluation_domain.uniform_all_points)
     evaluation_domain_points.requires_grad = True
@@ -82,7 +81,7 @@ def assess_solution(model, model_name):
     config_one_plot_im(axes0, fig0, 0, u_exact, 'Exact solution')
     config_one_plot_im(axes0, fig0, 1, u_pred, 'Predicted solution')
     config_one_plot_im(axes0, fig0, 2, diff_abs, 'Absolute difference')
-    fig0.savefig(f'./Ex2_singularity2D/Figures/{model_name}_U.png')
+    fig0.savefig(f'./Ex2_singularity2D/Figures/{model_name}_U_gr{grid_size}.png')
     plt.tight_layout()
     plt.show()
 
@@ -90,6 +89,7 @@ def assess_solution(model, model_name):
     config_one_plot_im(axes1, fig1, 0, du_exact_x1, 'Exact du/dx1')
     config_one_plot_im(axes1, fig1, 1, du_pred_x1, 'Predicted du/dx1')
     config_one_plot_im(axes1, fig1, 2, diff_abs_dx1, 'Absolute difference du/dx1')
+    fig1.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx1_gr{grid_size}.png')
     plt.tight_layout()
     plt.show()
 
@@ -97,18 +97,18 @@ def assess_solution(model, model_name):
     config_one_plot_im(axes2, fig2, 0, du_exact_x2, 'Exact du/dx2')
     config_one_plot_im(axes2, fig2, 1, du_pred_x2, 'Predicted du/dx2')
     config_one_plot_im(axes2, fig2, 2, diff_abs_dx2, 'Absolute difference du/dx2')
+    fig2.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx2_gr{grid_size}.png')
     plt.tight_layout()
     plt.show()
 
-    # fig3, axes3 = plt.subplots(2, 2, figsize=(12, 5))
-    # axes3[0, 0].plot(evaluation_domain_points[:20, 0].detach().numpy(), tensor_du_exact_x1[:20].detach().numpy(), label='Exact du/dx1')
-    # axes3[0, 1].plot(evaluation_domain_points[:20, 0].detach().numpy(), tensor_du_pred_x1[:20].detach().numpy(), label='Predicted du/dx1')
-    # plt.tight_layout()
-    # plt.show()
-    
+
 if __name__=="__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--grid_size', type=int, default=19)
+    args = parser.parse_args()
+
     model_name = 'ex2_res_iter20k_10k_2500_beta500'
     model = rnn.RitzModel(2)
     model.load_state_dict(torch.load('./Ex2_singularity2D/Models/'+model_name+'.pth', weights_only=True))
     print('\n')
-    assess_solution(model, model_name)
+    assess_solution(model, model_name, args.grid_size)

@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 
 ## Domain definition ##
 class Corner_Singularity_2D(Dataset):
-    def __init__(self, nb_points_in_omega=1000, nb_points_on_boundary=500, normal=False, lower_bound_xy=[-1, -1], uper_bound_xy=[1, 1]):
+    def __init__(self, nb_points_in_omega=1000, nb_points_on_boundary=500, normal=False, lower_bound_xy=[-1, -1], uper_bound_xy=[1, 1], grid_size=19):
 
         self.lower_bound_xy = lower_bound_xy
         self.upper_bound_xy = uper_bound_xy
-        self.squared_grid_size = 999
+        self.squared_grid_size = grid_size
         self.normal = normal
 
         self.nb_points_in_omega = nb_points_in_omega
