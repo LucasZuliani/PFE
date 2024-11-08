@@ -13,10 +13,12 @@ from ex2_utils import u_true, du_x1_true, du_x2_true, Corner_Singularity_2D
 
 ## Functions ##
 
-def H1_norm(u):
-    grad_ux, grad_uy = np.gradient(u)
-    grad_norm_squared = grad_ux**2 + grad_uy**2
-    return np.sqrt(np.sum(grad_norm_squared) + np.sum(u**2))
+def H1_norm(u: np.ndarray) -> float:
+    tensor_u = torch.tensor(u, requires_grad=True)
+    l2_norm_u = torch.sqrt(torch.sum(tensor_u**2))
+    grad_u = grad(tensor_u.sum(), tensor_u, create_graph=True)[0]
+    l2_norm_gradu = torch.sqrt(torch.sum(grad_u**2))
+    return torch.sqrt(l2_norm_u**2 + l2_norm_gradu**2)
 
 def partial_derivative(u, x):
     assert u.shape[0] == x.shape[0]
@@ -40,7 +42,7 @@ def config_one_plot_im(axes, fig, inds, to_plot, title):
         fig.colorbar(im, ax=axes[ind_i, ind_j], shrink=0.6)
     return 
 
-def assess_solution(model, model_name, grid_size):
+def assess_solution(model, model_name, grid_size, save=False):
     evaluation_domain = Corner_Singularity_2D(grid_size=grid_size)
     squared_grid_size = evaluation_domain.squared_grid_size
     evaluation_domain_points = torch.FloatTensor(evaluation_domain.uniform_all_points)
@@ -81,7 +83,6 @@ def assess_solution(model, model_name, grid_size):
     config_one_plot_im(axes0, fig0, 0, u_exact, 'Exact solution')
     config_one_plot_im(axes0, fig0, 1, u_pred, 'Predicted solution')
     config_one_plot_im(axes0, fig0, 2, diff_abs, 'Absolute difference')
-    fig0.savefig(f'./Ex2_singularity2D/Figures/{model_name}_U_gr{grid_size}.png')
     plt.tight_layout()
     plt.show()
 
@@ -89,7 +90,6 @@ def assess_solution(model, model_name, grid_size):
     config_one_plot_im(axes1, fig1, 0, du_exact_x1, 'Exact du/dx1')
     config_one_plot_im(axes1, fig1, 1, du_pred_x1, 'Predicted du/dx1')
     config_one_plot_im(axes1, fig1, 2, diff_abs_dx1, 'Absolute difference du/dx1')
-    fig1.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx1_gr{grid_size}.png')
     plt.tight_layout()
     plt.show()
 
@@ -97,18 +97,36 @@ def assess_solution(model, model_name, grid_size):
     config_one_plot_im(axes2, fig2, 0, du_exact_x2, 'Exact du/dx2')
     config_one_plot_im(axes2, fig2, 1, du_pred_x2, 'Predicted du/dx2')
     config_one_plot_im(axes2, fig2, 2, diff_abs_dx2, 'Absolute difference du/dx2')
-    fig2.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx2_gr{grid_size}.png')
     plt.tight_layout()
     plt.show()
+
+    if save:
+        # Figures
+        fig0.savefig(f'./Ex2_singularity2D/Figures/{model_name}_U_gr{grid_size}.png')
+        fig1.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx1_gr{grid_size}.png')
+        fig2.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx2_gr{grid_size}.png')
+
+        # DataFrame
+        key_words = model_name.split('_')
+        model_type, model_iter, model_ip_omega, model_ip_boundary, model_beta = key_words[1:6]
+        # df_to_add = {'Model': model_type, 'Iteration': model_iter, 'Integration points in Omega': model_ip_omega,
+        #              'Integration points on boundary': model_ip_boundary, 'Coeff de régularisation': model_beta, 'Grid size': grid_size,
+        #              'L2 norm true solution': err_l2_true_sol, 'L2 norm predicted solution': err_l2_pred,
+        #              'H1 norm true solution': err_h1_true_sol, 'H1 norm predicted solution': err_h1_pred,
+        #              'L2 relative error': err_relative_l2, 'H1 relative error': err_relative_h1}
+
 
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--grid_size', type=int, default=19)
+    parser.add_argument('--save', type=bool, default=False)
     args = parser.parse_args()
 
-    model_name = 'ex2_res_iter20k_10k_2500_beta500'
+    model_name = 'ex2_res_iter20k_10000_2500_beta500'
+    # model_name = 'ex2_res_iter20k_100_75_beta500'
     model = rnn.RitzModel(2)
     model.load_state_dict(torch.load('./Ex2_singularity2D/Models/'+model_name+'.pth', weights_only=True))
     print('\n')
-    assess_solution(model, model_name, args.grid_size)
+    assess_solution(model, model_name, args.grid_size, args.save)
+    df = pd.read_excel('./Ex2_singularity2D/ex2_summary.xlsx', engine='openpyxl')

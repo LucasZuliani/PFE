@@ -31,15 +31,15 @@ if __name__=="__main__":
     model_optimizer = torch.optim.Adam(ritz_model.parameters(), lr=0.0005)
 
     n_iter_adam = 20000
-    n_omega = 10000
-    n_boundary = 2500
+    n_omega = 100
+    n_boundary = 75
     beta = 500
 
     if isinstance(ritz_model, rnn.RitzModel):
         sig = 'res'
     else:
         sig = 'fwd'
-    model_name = f'ex2_{sig}_iter{n_iter_adam//1000}k_{n_omega//1000}k_{n_boundary}_beta{beta}.pth'
+    model_name = f'ex2_{sig}_iter{n_iter_adam//1000}k_{n_omega}_{n_boundary}_beta{beta}.pth'
 
     ritz_model.train()
     for iter_i in range(n_iter_adam):
