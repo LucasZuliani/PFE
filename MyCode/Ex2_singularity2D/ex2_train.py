@@ -4,7 +4,8 @@ from torch.autograd import grad
 import sys, os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
-from NeuralNetworks import recurrent_nn as rnn
+from NeuralNetworks import residualNN as rnn
+from NeuralNetworks import fwdNN as fwd
 
 ## Loss function ##
 
@@ -27,12 +28,14 @@ class DeepRitzLoss(torch.nn.Module):
 if __name__=="__main__":
     device = torch.device("cuda")
     ritz_model = rnn.RitzModel(2).to(device)
+    # ritz_model = fwd.FulltConnectedNetwork(hidden_size=20, input_dim=2).to(device)
+    print(f"Number of parameters: {ritz_model.nb_params}")
     criterion = DeepRitzLoss()
     model_optimizer = torch.optim.Adam(ritz_model.parameters(), lr=0.0005)
 
     n_iter_adam = 20000
-    n_omega = 100
-    n_boundary = 75
+    n_omega = 10000
+    n_boundary = 2500
     beta = 500
 
     if isinstance(ritz_model, rnn.RitzModel):

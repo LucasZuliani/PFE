@@ -8,7 +8,8 @@ import pandas as pd
 import argparse
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
-from NeuralNetworks import recurrent_nn as rnn
+from NeuralNetworks import fwdNN as fwd
+from NeuralNetworks import residualNN as rnn
 from ex2_utils import u_true, du_x1_true, du_x2_true, Corner_Singularity_2D
 
 ## Functions ##
@@ -42,7 +43,7 @@ def config_one_plot_im(axes, fig, inds, to_plot, title):
         fig.colorbar(im, ax=axes[ind_i, ind_j], shrink=0.6)
     return 
 
-def assess_solution(model, model_name, grid_size, save=False):
+def assess_solution(model, model_name, grid_size, save=False, df=None):
     evaluation_domain = Corner_Singularity_2D(grid_size=grid_size)
     squared_grid_size = evaluation_domain.squared_grid_size
     evaluation_domain_points = torch.FloatTensor(evaluation_domain.uniform_all_points)
@@ -70,7 +71,7 @@ def assess_solution(model, model_name, grid_size, save=False):
     err_l2_pred, err_l2_true_sol = np.linalg.norm(u_pred.flatten()), np.linalg.norm(u_exact.flatten())
     err_h1_pred, err_h1_true_sol = H1_norm(u_pred), H1_norm(u_exact)
     err_relative_l2 = diff_l2 / np.linalg.norm(u_exact.flatten())
-    err_relative_h1 = diff_h1 / H1_norm(u_exact)
+    err_relative_h1 = diff_h1 / err_h1_true_sol
     
 
     print(f"Mean absolute difference: {np.mean(diff_abs)}")
@@ -102,18 +103,22 @@ def assess_solution(model, model_name, grid_size, save=False):
 
     if save:
         # Figures
-        fig0.savefig(f'./Ex2_singularity2D/Figures/{model_name}_U_gr{grid_size}.png')
-        fig1.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx1_gr{grid_size}.png')
-        fig2.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx2_gr{grid_size}.png')
+        fig0.savefig(f'./Ex2_singularity2D/Figures/{model_name}_U_gr{grid_size+1}.png')
+        fig1.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx1_gr{grid_size+1}.png')
+        fig2.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx2_gr{grid_size+1}.png')
 
         # DataFrame
         key_words = model_name.split('_')
         model_type, model_iter, model_ip_omega, model_ip_boundary, model_beta = key_words[1:6]
-        # df_to_add = {'Model': model_type, 'Iteration': model_iter, 'Integration points in Omega': model_ip_omega,
-        #              'Integration points on boundary': model_ip_boundary, 'Coeff de régularisation': model_beta, 'Grid size': grid_size,
-        #              'L2 norm true solution': err_l2_true_sol, 'L2 norm predicted solution': err_l2_pred,
-        #              'H1 norm true solution': err_h1_true_sol, 'H1 norm predicted solution': err_h1_pred,
-        #              'L2 relative error': err_relative_l2, 'H1 relative error': err_relative_h1}
+        row_to_add = {'Model': model_type, 'Iterations': model_iter, 'IP in Omega': model_ip_omega,
+                     'IP on boundary': model_ip_boundary, 'Beta': model_beta[4:], 'Grid size': grid_size+1,
+                     'MAE': np.mean(diff_abs), 'L2 relative error': err_relative_l2, 'H1 relative error': err_relative_h1.item()}
+        
+        df_to_add = pd.DataFrame([row_to_add])
+        df = pd.concat([df, df_to_add], ignore_index=True)
+        df = df.drop_duplicates()
+        df = df.sort_values(by="L2 relative error", ascending=True)
+        df.to_csv('./Ex2_singularity2D/ex2_summary.csv', index=False, float_format="%.5f")
 
 
 
@@ -123,10 +128,18 @@ if __name__=="__main__":
     parser.add_argument('--save', type=bool, default=False)
     args = parser.parse_args()
 
-    model_name = 'ex2_res_iter20k_10000_2500_beta500'
+    # model_name = 'ex2_res_iter20k_10000_2500_beta500'
     # model_name = 'ex2_res_iter20k_100_75_beta500'
-    model = rnn.RitzModel(2)
+    # model_name = 'ex2_res_iter20k_100_75_beta10000'
+    # model_name = 'ex2_res_iter20k_10000_2500_beta10000'
+    model_name = 'ex2_fwd_iter20k_10000_2500_beta500'
+
+    if model_name.split('_')[1] == 'res':
+        model = rnn.RitzModel(2)
+    else:
+        model = fwd.FulltConnectedNetwork(hidden_size=20, input_dim=2)
+
     model.load_state_dict(torch.load('./Ex2_singularity2D/Models/'+model_name+'.pth', weights_only=True))
     print('\n')
-    assess_solution(model, model_name, args.grid_size, args.save)
-    df = pd.read_excel('./Ex2_singularity2D/ex2_summary.xlsx', engine='openpyxl')
+    df = pd.read_csv('./Ex2_singularity2D/ex2_summary.csv', sep=',')
+    assess_solution(model, model_name, args.grid_size, args.save, df)
