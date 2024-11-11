@@ -103,9 +103,11 @@ def assess_solution(model, model_name, grid_size, save=False, df=None):
 
     if save:
         # Figures
-        fig0.savefig(f'./Ex2_singularity2D/Figures/{model_name}_U_gr{grid_size+1}.png')
-        fig1.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx1_gr{grid_size+1}.png')
-        fig2.savefig(f'./Ex2_singularity2D/Figures/{model_name}_dU_dx2_gr{grid_size+1}.png')
+        if not os.path.exists((f'./Ex2_singularity2D/Figures/{model_name}')):
+            os.makedirs(f'./Ex2_singularity2D/Figures/{model_name}')
+        fig0.savefig(f'./Ex2_singularity2D/Figures/{model_name}/{model_name}_U_gr{grid_size+1}.png')
+        fig1.savefig(f'./Ex2_singularity2D/Figures/{model_name}/{model_name}_dU_dx1_gr{grid_size+1}.png')
+        fig2.savefig(f'./Ex2_singularity2D/Figures/{model_name}/{model_name}_dU_dx2_gr{grid_size+1}.png')
 
         # DataFrame
         key_words = model_name.split('_')
@@ -116,8 +118,9 @@ def assess_solution(model, model_name, grid_size, save=False, df=None):
         
         df_to_add = pd.DataFrame([row_to_add])
         df = pd.concat([df, df_to_add], ignore_index=True)
-        df = df.drop_duplicates()
-        df = df.sort_values(by="L2 relative error", ascending=True)
+        df.drop_duplicates(subset=df.columns[:6].tolist(), inplace=True)
+        df.sort_values(by="L2 relative error", ascending=True, inplace=True)
+        print(df)
         df.to_csv('./Ex2_singularity2D/ex2_summary.csv', index=False, float_format="%.5f")
 
 
