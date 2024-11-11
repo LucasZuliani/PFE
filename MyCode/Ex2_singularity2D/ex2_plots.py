@@ -15,11 +15,11 @@ from ex2_utils import u_true, du_x1_true, du_x2_true, Corner_Singularity_2D
 ## Functions ##
 
 def H1_norm(u: np.ndarray) -> float:
-    tensor_u = torch.tensor(u, requires_grad=True)
-    l2_norm_u = torch.sqrt(torch.sum(tensor_u**2))
+    tensor_u = torch.tensor(u, dtype=torch.float32, requires_grad=True)
+    l2_norm_u = torch.linalg.norm(tensor_u)
     grad_u = grad(tensor_u.sum(), tensor_u, create_graph=True)[0]
-    l2_norm_gradu = torch.sqrt(torch.sum(grad_u**2))
-    return torch.sqrt(l2_norm_u**2 + l2_norm_gradu**2)
+    l2_norm_gradu = torch.linalg.norm(grad_u)
+    return torch.sqrt(l2_norm_u**2 + l2_norm_gradu**2).item()
 
 def partial_derivative(u, x):
     assert u.shape[0] == x.shape[0]
@@ -144,5 +144,6 @@ if __name__=="__main__":
 
     model.load_state_dict(torch.load('./Ex2_singularity2D/Models/'+model_name+'.pth', weights_only=True))
     print('\n')
+    print(f'Number of parameters: {model.nb_params}')
     df = pd.read_csv('./Ex2_singularity2D/ex2_summary.csv', sep=',')
     assess_solution(model, model_name, args.grid_size, args.save, df)

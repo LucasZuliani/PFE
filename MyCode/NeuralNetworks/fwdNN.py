@@ -1,6 +1,6 @@
 import torch
 
-class FulltConnectedNetwork(torch.nn.Module):
+class FullyConnectedNetwork(torch.nn.Module):
     def __init__(self, hidden_size=20, input_dim=2):
         super(FulltConnectedNetwork, self).__init__()
 
