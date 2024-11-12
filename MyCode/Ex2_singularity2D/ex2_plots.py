@@ -14,12 +14,13 @@ from ex2_utils import u_true, du_x1_true, du_x2_true, Corner_Singularity_2D
 
 ## Functions ##
 
-def H1_norm(u: np.ndarray) -> float:
-    tensor_u = torch.tensor(u, dtype=torch.float32, requires_grad=True)
-    l2_norm_u = torch.linalg.norm(tensor_u)
-    grad_u = grad(tensor_u.sum(), tensor_u, create_graph=True)[0]
-    l2_norm_gradu = torch.linalg.norm(grad_u)
-    return torch.sqrt(l2_norm_u**2 + l2_norm_gradu**2).item()
+# def H1_norm(u: np.ndarray) -> float:
+#     tensor_u = torch.tensor(u, dtype=torch.float32, requires_grad=True)
+
+#     l2_norm_u = torch.linalg.norm(tensor_u)
+#     grad_u = grad(tensor_u.sum(), tensor_u, create_graph=True)[0]
+#     l2_norm_gradu = torch.linalg.norm(grad_u)
+#     return torch.sqrt(l2_norm_u**2 + l2_norm_gradu**2).item()
 
 def partial_derivative(u, x):
     assert u.shape[0] == x.shape[0]
@@ -43,6 +44,12 @@ def config_one_plot_im(axes, fig, inds, to_plot, title):
         fig.colorbar(im, ax=axes[ind_i, ind_j], shrink=0.6)
     return 
 
+def norm_h1(x, u):
+    grad_u = grad(inputs=x, outputs=u, grad_outputs=torch.ones_like(u), allow_unused=True, retain_graph=True)[0]
+    l2_norm_u = torch.linalg.norm(u)
+    l2_norm_gradu = torch.linalg.norm(grad_u)
+    return torch.sqrt(l2_norm_u**2 + l2_norm_gradu**2).item()
+
 def assess_solution(model, model_name, grid_size, save=False, df=None):
     evaluation_domain = Corner_Singularity_2D(grid_size=grid_size)
     squared_grid_size = evaluation_domain.squared_grid_size
@@ -52,7 +59,15 @@ def assess_solution(model, model_name, grid_size, save=False, df=None):
     model.eval()
 
     tensor_u_pred = model(evaluation_domain_points)
-    tensor_u_exact = u_true(evaluation_domain_points.cpu())
+    tensor_u_exact = u_true(evaluation_domain_points.cpu()).unsqueeze(1)
+
+    norm_l2_u_exact = torch.linalg.norm(tensor_u_exact)
+    norm_l2_u_pred = torch.linalg.norm(tensor_u_pred)
+    norm_h1_u_exact = norm_h1(evaluation_domain_points, tensor_u_exact)
+    norm_h1_u_pred = norm_h1(evaluation_domain_points, tensor_u_pred)
+    diff_l2 = torch.linalg.norm(tensor_u_exact - tensor_u_pred)
+    diff_h1 = norm_h1(evaluation_domain_points, tensor_u_exact - tensor_u_pred)
+
     u_pred = (tensor_u_pred.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1)
     u_exact = (tensor_u_exact.cpu().detach().numpy()).reshape(squared_grid_size+1, squared_grid_size+1)
 
@@ -65,18 +80,13 @@ def assess_solution(model, model_name, grid_size, save=False, df=None):
     diff_abs_dx1 = np.abs(du_exact_x1 - du_pred_x1)
     diff_abs_dx2 = np.abs(du_exact_x2 - du_pred_x2)
 
-    diff_l2 = np.linalg.norm(diff_abs.flatten())
-    diff_h1 = H1_norm(u_exact - u_pred)
-
-    err_l2_pred, err_l2_true_sol = np.linalg.norm(u_pred.flatten()), np.linalg.norm(u_exact.flatten())
-    err_h1_pred, err_h1_true_sol = H1_norm(u_pred), H1_norm(u_exact)
-    err_relative_l2 = diff_l2 / np.linalg.norm(u_exact.flatten())
-    err_relative_h1 = diff_h1 / err_h1_true_sol
+    err_relative_l2 = diff_l2 / norm_l2_u_exact
+    err_relative_h1 = diff_h1 / norm_h1_u_exact
     
 
     print(f"Mean absolute difference: {np.mean(diff_abs)}")
-    print(f"Norm L2 of the true solution: {err_l2_true_sol} and of the predicted solution: {err_l2_pred}")
-    print(f"Norm H1 of the true solution: {err_h1_true_sol} and of the predicted solution: {err_h1_pred}")
+    print(f"Norm L2 of the true solution: {norm_l2_u_exact} and of the predicted solution: {norm_l2_u_pred}")
+    print(f"Norm H1 of the true solution: {norm_h1_u_exact} and of the predicted solution: {norm_h1_u_pred}")
     print(f"Norm L2 of the relative error: {err_relative_l2}")
     print(f"Norm H1 of the relative error: {err_relative_h1}")
 
@@ -132,15 +142,15 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     # model_name = 'ex2_res_iter20k_10000_2500_beta500'
-    # model_name = 'ex2_res_iter20k_100_75_beta500'
+    model_name = 'ex2_res_iter20k_100_75_beta500'
     # model_name = 'ex2_res_iter20k_100_75_beta10000'
     # model_name = 'ex2_res_iter20k_10000_2500_beta10000'
-    model_name = 'ex2_fwd_iter20k_10000_2500_beta500'
+    # model_name = 'ex2_fwd_iter20k_10000_2500_beta500'
 
     if model_name.split('_')[1] == 'res':
         model = rnn.RitzModel(2)
     else:
-        model = fwd.FulltConnectedNetwork(hidden_size=20, input_dim=2)
+        model = fwd.FullyConnectedNetwork(hidden_size=20, input_dim=2)
 
     model.load_state_dict(torch.load('./Ex2_singularity2D/Models/'+model_name+'.pth', weights_only=True))
     print('\n')
