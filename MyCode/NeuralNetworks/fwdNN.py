@@ -2,7 +2,7 @@ import torch
 
 class FullyConnectedNetwork(torch.nn.Module):
     def __init__(self, hidden_size=20, input_dim=2):
-        super(FulltConnectedNetwork, self).__init__()
+        super(FullyConnectedNetwork, self).__init__()
 
         self.fc_in = torch.nn.Linear(in_features=input_dim, out_features=hidden_size)
         self.fc2 = torch.nn.Linear(in_features=hidden_size, out_features=hidden_size)

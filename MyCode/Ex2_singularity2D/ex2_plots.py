@@ -14,14 +14,6 @@ from ex2_utils import u_true, du_x1_true, du_x2_true, Corner_Singularity_2D
 
 ## Functions ##
 
-# def H1_norm(u: np.ndarray) -> float:
-#     tensor_u = torch.tensor(u, dtype=torch.float32, requires_grad=True)
-
-#     l2_norm_u = torch.linalg.norm(tensor_u)
-#     grad_u = grad(tensor_u.sum(), tensor_u, create_graph=True)[0]
-#     l2_norm_gradu = torch.linalg.norm(grad_u)
-#     return torch.sqrt(l2_norm_u**2 + l2_norm_gradu**2).item()
-
 def partial_derivative(u, x):
     assert u.shape[0] == x.shape[0]
     assert x.shape[1] == 2
@@ -124,13 +116,12 @@ def assess_solution(model, model_name, grid_size, save=False, df=None):
         model_type, model_iter, model_ip_omega, model_ip_boundary, model_beta = key_words[1:6]
         row_to_add = {'Model': model_type, 'Iterations': model_iter, 'IP in Omega': model_ip_omega,
                      'IP on boundary': model_ip_boundary, 'Beta': model_beta[4:], 'Grid size': grid_size+1,
-                     'MAE': np.mean(diff_abs), 'L2 relative error': err_relative_l2, 'H1 relative error': err_relative_h1.item()}
+                     'MAE': np.mean(diff_abs), 'L2 relative error': err_relative_l2.item(), 'H1 relative error': err_relative_h1}
         
         df_to_add = pd.DataFrame([row_to_add])
         df = pd.concat([df, df_to_add], ignore_index=True)
         df.drop_duplicates(subset=df.columns[:6].tolist(), inplace=True)
         df.sort_values(by="L2 relative error", ascending=True, inplace=True)
-        print(df)
         df.to_csv('./Ex2_singularity2D/ex2_summary.csv', index=False, float_format="%.5f")
 
 
@@ -142,10 +133,10 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     # model_name = 'ex2_res_iter20k_10000_2500_beta500'
-    model_name = 'ex2_res_iter20k_100_75_beta500'
+    # model_name = 'ex2_res_iter20k_100_75_beta500'
     # model_name = 'ex2_res_iter20k_100_75_beta10000'
     # model_name = 'ex2_res_iter20k_10000_2500_beta10000'
-    # model_name = 'ex2_fwd_iter20k_10000_2500_beta500'
+    model_name = 'ex2_fwd_iter20k_10000_2500_beta500'
 
     if model_name.split('_')[1] == 'res':
         model = rnn.RitzModel(2)
