@@ -35,9 +35,9 @@ def assess_solution(model, model_name, grid_size, save=False, df=None):
     err_relative_l2 = plots.compute_l2_relative_error(u_pred, u_exact)
     err_relative_h1 = plots.compute_h1_relative_error(u_pred, u_exact, evaluation_domain_points)
 
-    fig0 = plots.plot_config1(u_pred_reshaped, u_exact_reshaped)
-    fig1 = plots.plot_config1(du_pred_x1_reshaped, du_exact_x1_reshaped)
-    fig2 = plots.plot_config1(du_pred_x2_reshaped, du_exact_x2_reshaped)
+    fig0 = plots.plot_config1(u_pred_reshaped, u_exact_reshaped, 'U')
+    fig1 = plots.plot_config1(du_pred_x1_reshaped, du_exact_x1_reshaped, 'dU_dx1')
+    fig2 = plots.plot_config1(du_pred_x2_reshaped, du_exact_x2_reshaped, 'dU_dx2')
 
     if save:
         # Figures

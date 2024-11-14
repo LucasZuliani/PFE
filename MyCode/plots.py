@@ -55,18 +55,18 @@ def reshape_tensor_to_cpu(tensor: torch.Tensor, grid_size: int) -> np.ndarray:
 def to_cpu(tensor: torch.Tensor) -> torch.Tensor:
     return tensor.cpu().detach()
 
-def plot_config1(u_pred: torch.Tensor, u_exact: torch.Tensor) -> plt.Figure:
+def plot_config1(u_pred: torch.Tensor, u_exact: torch.Tensor, title: str) -> plt.Figure:
 
     fig, ax = plt.subplots(1, 3, figsize=(12, 5))
     im0 = ax[0].imshow(u_exact, cmap='jet', extent=[-1, 1, -1, 1], interpolation='bicubic')
-    ax[0].set_title('Exact solution')
+    ax[0].set_title(title  + ' exact')
     fig.colorbar(im0, ax=ax[0], shrink=0.6)
 
     im1 = ax[1].imshow(u_pred, cmap='jet', extent=[-1, 1, -1, 1], interpolation='bicubic')
-    ax[1].set_title('Predicted solution')
+    ax[1].set_title(title + ' predicted ')
     fig.colorbar(im1, ax=ax[1], shrink=0.6)
 
-    im2 = ax[2].imshow(np.abs(u_exact - u_pred), cmap='jet', extent=[-1, 1, -1, 1], interpolation='bicubic')
+    im2 = ax[2].imshow(u_exact - u_pred, cmap='jet', extent=[-1, 1, -1, 1], interpolation='bicubic')
     ax[2].set_title('Error')
     fig.colorbar(im2, ax=ax[2], shrink=0.6)
     plt.tight_layout()
