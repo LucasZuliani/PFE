@@ -1,7 +1,6 @@
 DCRM/
 MyCode/__pycache__/
+MyCode/Ex1_circle2D/Figures/
 MyCode/Ex1_circle2D/Models/
-MyCode/Ex1_circle2D/Figures
-MyCode/Ex0_non_linear1D/Models/
-MyCode/Ex2_singularity2D/Models/
+MyCode/Ex0_non_linear1D/Figures/
 MyCode/Ex2_singularity2D/Figures/

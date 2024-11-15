@@ -55,7 +55,7 @@ def reshape_tensor_to_cpu(tensor: torch.Tensor, grid_size: int) -> np.ndarray:
 def to_cpu(tensor: torch.Tensor) -> torch.Tensor:
     return tensor.cpu().detach()
 
-def plot_config1(u_pred: torch.Tensor, u_exact: torch.Tensor, title: str) -> plt.Figure:
+def plot_config1(u_pred: torch.Tensor, u_exact: torch.Tensor, title: str, integration_points=None) -> plt.Figure:
 
     fig, ax = plt.subplots(1, 3, figsize=(12, 5))
     im0 = ax[0].imshow(u_exact, cmap='jet', extent=[-1, 1, -1, 1], interpolation='bicubic')
@@ -69,6 +69,10 @@ def plot_config1(u_pred: torch.Tensor, u_exact: torch.Tensor, title: str) -> plt
     im2 = ax[2].imshow(u_exact - u_pred, cmap='jet', extent=[-1, 1, -1, 1], interpolation='bicubic')
     ax[2].set_title('Error')
     fig.colorbar(im2, ax=ax[2], shrink=0.6)
+
+    if integration_points is not None:
+        ax[2].scatter(integration_points[:, 0], integration_points[:, 1], c='black', s=6)
+
     plt.tight_layout()
     plt.show()
 
