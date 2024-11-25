@@ -11,20 +11,24 @@ class ConvolutionalNetwork(torch.nn.Module):
         self.conv_out = torch.nn.Conv1d(in_channels=2*hidden_size, out_channels=2, kernel_size=1)
         self.fc_out = torch.nn.Linear(in_features=2, out_features=1)
 
+        self.dropout = torch.nn.Dropout(p=0.2)
+    
         self.activation = torch.nn.Tanh()
 
         for m in self.modules():
             if isinstance(m, torch.nn.Linear):
-                torch.nn.init.normal_(m.weight, mean=0, std=0.1)
+                torch.nn.init.xavier_uniform_(m.weight)
             elif isinstance(m, torch.nn.Conv1d):
-                torch.nn.init.normal_(m.weight, mean=0, std=0.1)
+                torch.nn.init.xavier_uniform_(m.weight)
         
     def forward(self, x):
-        # residual = x
         x = self.activation(self.fc_in(x))
         x = self.activation(self.fc2(x))
+        x = self.dropout(x)
         x = (x.unsqueeze(0)).permute(0, 2, 1)
+
         x = self.conv1(x)
         x = self.conv_out(x)
+
         u_theta = self.fc_out(x.squeeze(0).permute(1, 0))
         return u_theta
