@@ -11,7 +11,7 @@ class FullyConnectedNetwork(torch.nn.Module):
         self.fc_out = torch.nn.Linear(in_features=hidden_size, out_features=1)
 
         self.activation = torch.nn.Tanh()
-
+        
         for m in self.modules():
             if isinstance(m, torch.nn.Linear):
                 torch.nn.init.normal_(m.weight, mean=0, std=0.1)

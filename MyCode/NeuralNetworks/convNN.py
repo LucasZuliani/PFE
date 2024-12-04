@@ -12,7 +12,7 @@ class ConvolutionalNetwork(torch.nn.Module):
         self.fc_out = torch.nn.Linear(in_features=2, out_features=1)
 
         self.dropout = torch.nn.Dropout(p=0.2)
-    
+
         self.activation = torch.nn.Tanh()
 
         for m in self.modules():
